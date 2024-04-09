@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmakEmpAcc;
+using SmakEmpAcc.Models;
 
 namespace SmakEmpAcc.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class EmployeeController : ControllerBase
+    public class EmployeeController : Controller
     {
         private readonly ApplicationContext _context;
 
@@ -15,81 +13,127 @@ namespace SmakEmpAcc.Controllers
             _context = context;
         }
 
-        // GET: api/Employee - Get all employees
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        // GET: Employee
+        public async Task<IActionResult> Index()
         {
-            return await _context.Employees.ToListAsync();
+            var employees = await _context.Employees.ToListAsync();
+            return View(employees);
         }
 
-        // GET: api/Employee/5 - Get employee by ID
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        // GET: Employee/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (employee == null)
             {
                 return NotFound();
             }
 
-            return employee;
+            return View(employee);
         }
 
-        // POST: api/Employee - Create a new employee
-        [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        // GET: Employee/Create
+        public IActionResult Create()
         {
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
+            return View();
         }
 
-        // PUT: api/Employee/5 - Update an existing employee
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
+        // POST: Employee/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Name,Age,Position,Address,PassportData,Phone")] Employee employee)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(employee);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(employee);
+        }
+
+        // GET: Employee/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+            return View(employee);
+        }
+
+        // POST: Employee/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Age,Position,Address,PassportData,Phone")] Employee employee)
         {
             if (id != employee.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(employee).State = EntityState.Modified;
-
-            try
+            if (ModelState.IsValid)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
+                try
                 {
-                    return NotFound();
+                    _context.Update(employee);
+                    await _context.SaveChangesAsync();
                 }
-                else
+                catch (DbUpdateConcurrencyException)
                 {
-                    throw;
+                    if (!EmployeeExists(employee.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
+                return RedirectToAction(nameof(Index));
             }
-
-            return NoContent();
+            return View(employee);
         }
 
-        // DELETE: api/Employee/5 - Delete an employee
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(int id)
+        // GET: Employee/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (employee == null)
             {
                 return NotFound();
             }
 
+            return View(employee);
+        }
+
+        // POST: Employee/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var employee = await _context.Employees.FindAsync(id);
             _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
-
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
 
         private bool EmployeeExists(int id)

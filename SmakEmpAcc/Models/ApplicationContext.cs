@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace SmakEmpAcc
+namespace SmakEmpAcc.Models
 {
     public class ApplicationContext : DbContext
     {
