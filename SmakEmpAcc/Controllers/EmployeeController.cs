@@ -1,28 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmakEmpAcc.ApplicationDbContext;
+using SmakEmpAcc;
 
 namespace SmakEmpAcc.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
     public class EmployeeController : ControllerBase
     {
-        private readonly ApplicationDbContext _context; // Контекст данных Entity Framework
+        private readonly ApplicationContext _context;
 
-        public EmployeeController(ApplicationDbContext context)
+        public EmployeeController(ApplicationContext context)
         {
             _context = context;
         }
 
-        // GET: /Employee - Получение списка всех сотрудников
+        // GET: api/Employee - Get all employees
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
         {
             return await _context.Employees.ToListAsync();
         }
 
-        // GET: /Employee/{id} - Получение сотрудника по ID
+        // GET: api/Employee/5 - Get employee by ID
         [HttpGet("{id}")]
         public async Task<ActionResult<Employee>> GetEmployee(int id)
         {
@@ -36,17 +36,17 @@ namespace SmakEmpAcc.Controllers
             return employee;
         }
 
-        // POST: /Employee - Добавление нового сотрудника
+        // POST: api/Employee - Create a new employee
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
         {
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEmployee), new { id = employee.Id }, employee);
+            return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
         }
 
-        // PUT: /Employee/{id} - Изменение существующего сотрудника
+        // PUT: api/Employee/5 - Update an existing employee
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEmployee(int id, Employee employee)
         {
@@ -76,7 +76,7 @@ namespace SmakEmpAcc.Controllers
             return NoContent();
         }
 
-        // DELETE: /Employee/{id} - Удаление сотрудника
+        // DELETE: api/Employee/5 - Delete an employee
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
